@@ -1,0 +1,109 @@
+### Correct request
+
+POST {{baseUrl}}/check-vat-number
+Accept: application/json
+Content-Type: application/json
+
+{
+  "countryCode": "PL",
+  "vatNumber": "8992790965",
+  "requesterMemberStateCode": "PL",
+  "requesterNumber": "8992790965"
+}
+
+### Correct request for Spain
+
+POST {{baseUrl}}/check-vat-number
+Accept: application/json
+Content-Type: application/json
+
+{
+  "countryCode": "ES",
+  "vatNumber": "A28240752",
+  "traderName": "ATOS SPAIN SA",
+  "traderStreet": "Calle Albarracin",
+  "traderPostalCode": "28037",
+  "traderCity": "Madrid",
+  "traderCompanyType": "---",
+  "requesterMemberStateCode": "DE",
+  "requesterNumber": "307699628"
+}
+
+### Correct request for Spain 2
+
+POST {{baseUrl}}/check-vat-number
+Accept: application/json
+Content-Type: application/json
+
+{
+  "countryCode": "ES",
+  "vatNumber": "A28240752",
+  "traderName": "ATOS SPAIN SA",
+  "traderStreet": "Calle Albarracin",
+  "traderPostalCode": "28037",
+  "traderCity": "Barcelona",
+  "traderCompanyType": "---",
+  "requesterMemberStateCode": "DE",
+  "requesterNumber": "307699628"
+}
+
+### Incorrect city in request for Spain
+
+POST {{baseUrl}}/check-vat-number
+Accept: application/json
+Content-Type: application/json
+
+{
+  "countryCode": "ES",
+  "vatNumber": "A28240752",
+  "traderName": "ATOS SPAIN SA",
+  "traderStreet": "Calle Albarracin",
+  "traderPostalCode": "28037",
+  "traderCity": "Barcelona",
+  "traderCompanyType": "---",
+  "requesterMemberStateCode": "DE",
+  "requesterNumber": "307699628"
+}
+
+### Invalid vat number
+
+POST {{baseUrl}}/check-vat-number
+Accept: application/json
+Content-Type: application/json
+
+{
+  "countryCode": "PL",
+  "vatNumber": "8999990965",
+  "requesterMemberStateCode": "PL",
+  "requesterNumber": "8992790965"
+}
+
+### Invalid country
+
+POST {{baseUrl}}/check-vat-number
+Accept: application/json
+Content-Type: application/json
+
+{
+  "countryCode": "POLAND",
+  "vatNumber": "8999990965",
+  "requesterMemberStateCode": "PL",
+  "requesterNumber": "8992790965"
+}
+
+### Invalid request
+
+POST {{baseUrl}}/check-vat-number
+Accept: application/json
+Content-Type: application/json
+
+{
+  "countryCode": "PL",
+  "vatNumber": "8992790965",
+  "requesterMemberStateCode": "  ",
+  "requesterNumber": "8992790965"
+}
+
+### Get usage
+
+GET {{baseUrl}}/usage

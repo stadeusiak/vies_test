@@ -1,0 +1,173 @@
+swagger: "2.0"
+info:
+  description: |
+    This is the contract for Vies on-the-Web endpoints. 
+    The checkVat service supports exact and approximate matching at the same time. 
+    In order to retrieve the requestIdentifier, the information about requesterMemberStateCode and requesterNumber have to be provided.
+  version: "1.0.0"
+  title: "CDQ VIES gateway"
+produces:
+  - "application/json"
+schemes:
+  - "https"
+paths:
+  /usage:
+    get:
+      tags:
+        - "vies gateway"
+      summary: "Check statistics of the usage"
+      operationId: "usage"
+      responses:
+        "200":
+          description: "Successful operation"
+          schema:
+            $ref: "#/definitions/CheckUsageResponse"
+  /check-vat-number:
+    post:
+      tags:
+        - "vies gateway"
+      summary: "Check a Vat Number for a specific country"
+      operationId: "checkVatNumber"
+      parameters:
+        - name: "body"
+          in: "body"
+          description: "The request body"
+          required: true
+          schema:
+            $ref: "#/definitions/CheckVatRequest"
+      responses:
+        "200":
+          description: "Successful operation"
+          schema:
+            $ref: "#/definitions/CommonResponse"
+definitions:
+  CheckUsageResponse:
+    type: "object"
+    properties:
+      total:
+        type: "integer"
+        format: "int64"
+      success:
+        type: "integer"
+        format: "int64"
+      failures:
+        type: "integer"
+        format: "int64"
+  Match:
+    type: "string"
+    enum:
+      - "VALID"
+      - "INVALID"
+      - "NOT_PROCESSED"
+    example: "VALID"
+  CheckVatRequest:
+    type: "object"
+    properties:
+      countryCode:
+        type: "string"
+        example: "ES"
+      vatNumber:
+        type: "string"
+        example: "A28240752"
+      requesterMemberStateCode:
+        type: "string"
+        example: "DE"
+      requesterNumber:
+        type: "string"
+        example: "307699628"
+      traderName:
+        type: "string"
+        example: "ATOS SPAIN SA"
+      traderStreet:
+        type: "string"
+        example: "Calle Albarracin"
+      traderPostalCode:
+        type: "string"
+        example: "28037"
+      traderCity:
+        type: "string"
+        example: "Madrid"
+      traderCompanyType:
+        type: "string"
+        example: "---"
+  CommonResponse:
+    type: "object"
+    properties:
+      actionSucceed:
+        type: "boolean"
+        description: "Indicate if the action succeed or not"
+      viesResponse:
+        $ref: "#/definitions/CheckVatResponse"
+      errorWrappers:
+        $ref: "#/definitions/ErrorWrappers"
+  CheckVatResponse:
+    type: "object"
+    properties:
+      countryCode:
+        type: "string"
+        example: "ES"
+      vatNumber:
+        type: "string"
+        example: "A28240752"
+      requestDate:
+        type: "string"
+        format: "date-time"
+        example: "2025-03-26T08:52:44.739Z"
+      valid:
+        type: "boolean"
+        example: true
+      requestIdentifier:
+        type: "string"
+        example: "91bcfdf4-5ce2-4f8b-b460-7798b30608cd"
+      name:
+        type: "string"
+        example: "---"
+      address:
+        type: "string"
+        example: "---"
+      traderName:
+        type: "string"
+        example: "ATOS SPAIN SA"
+      traderStreet:
+        type: "string"
+        example: "Calle Albarracin"
+      traderPostalCode:
+        type: "string"
+        example: "28037"
+      traderCity:
+        type: "string"
+        example: "Barcelona"
+      traderCompanyType:
+        type: "string"
+        example: "---"
+      traderNameMatch:
+        $ref: "#/definitions/Match"
+        example: "VALID"
+      traderStreetMatch:
+        $ref: "#/definitions/Match"
+        example: "VALID"
+      traderPostalCodeMatch:
+        $ref: "#/definitions/Match"
+        example: "VALID"
+      traderCityMatch:
+        $ref: "#/definitions/Match"
+        example: "INVALID"
+      traderCompanyTypeMatch:
+        $ref: "#/definitions/Match"
+        example: "INVALID"
+  ErrorWrappers:
+    type: "array"
+    description: "Indicate the cause of the error when actionSucceed is false."
+    items:
+      $ref: "#/definitions/ErrorWrapper"
+  ErrorWrapper:
+    type: "object"
+    description: "Define information about an error"
+    properties:
+      error:
+        type: "string"
+        description: "The error code"
+        example: "VOW-ERR-1"
+      message:
+        type: "string"
+        example: "An unexpected error occurred. Please retry later or contact the support team."

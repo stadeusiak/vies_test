@@ -1,0 +1,126 @@
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'io.qameta.allure' version '2.11.2'
+    id("org.openapi.generator") version "7.12.0"
+}
+
+group = 'com.cdq'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+openApiGenerate {
+    generatorName = 'spring'
+
+    inputSpec = "$projectDir/src/main/resources/vies-api-v1.yaml"
+    outputDir = "$buildDir/generated/sources/openapi"
+
+    apiPackage = 'com.cdq.api.v1'
+    modelPackage = 'com.cdq.api.v1.model'
+
+    generateApiTests = false
+    generateModelTests = false
+
+    configOptions.set([
+            useSpringBoot3       : 'true',
+            interfaceOnly        : 'true',
+            performBeanValidation: 'true',
+            skipDefaultInterface : 'true',
+            useTags              : 'true',
+            reactive             : 'true'
+    ])
+
+    globalProperties.set([
+            models: '',
+            apis  : ''
+    ])
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir "$buildDir/generated/sources/openapi/src/main/java"
+        }
+    }
+}
+
+tasks.compileJava.dependsOn(tasks.openApiGenerate)
+
+tasks.named("bootBuildImage").configure { BootBuildImage it ->
+    imageName = "cdq.demo.vies:latest"
+    publish = false
+    builder = "paketobuildpacks/builder-jammy-base" // zamiast 'tiny'
+    environment = [
+            'BP_JVM_VERSION': '21'
+    ]
+}
+
+dependencies {
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    developmentOnly 'org.springframework.boot:spring-boot-starter-actuator'
+
+    implementation 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.openapitools:jackson-databind-nullable:0.2.4'
+    implementation 'org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.5'
+
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    testImplementation 'io.projectreactor:reactor-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers:1.20.5'
+
+    //Test Automation
+    testImplementation 'io.rest-assured:rest-assured:5.4.0'
+    testImplementation 'org.assertj:assertj-core:3.22.0'
+    testImplementation 'org.jmockit:jmockit:1.49'
+
+    // WireMock
+    testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.1")
+
+    // Inne
+    testImplementation 'org.apache.commons:commons-io:1.3.2'
+
+    // Allure
+    testImplementation 'io.qameta.allure:allure-junit5:2.21.0'
+    testImplementation 'io.qameta.allure:allure-rest-assured:2.21.0'
+
+    // Lombok do kompilacji
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+    // Lombok w testach (opcjonalnie, ale zalecane)
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+}
+
+bootJar {
+    archiveFileName = 'app.jar'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    jvmArgs "-javaagent:${classpath.find { it.name.contains("byte-buddy-agent") }}"
+    systemProperty 'allure.results.directory', "$buildDir/allure-results"
+}

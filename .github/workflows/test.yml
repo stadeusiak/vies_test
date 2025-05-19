@@ -1,0 +1,89 @@
+name: Run tests with Testcontainers
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Docker CE
+        run: |
+          sudo apt-get remove -y docker docker-engine docker.io containerd runc || true
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sudo sh get-docker.sh
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Grant execute permission for Gradle
+        run: chmod +x ./gradlew
+
+      - name: Build JAR
+        run: ./gradlew bootJar
+
+      - name: Build Docker image for Testcontainers
+        run: docker build -t cdq.demo.vies .
+
+      - name: Run tests
+        run: ./gradlew test
+        env:
+          TESTCONTAINERS_CHECKS_DISABLE: true
+        continue-on-error: true
+
+      - name: Show Docker containers
+        run: docker ps -a
+
+      - name:  Show mapped ports (debug)
+        run:  docker inspect $(docker ps -q --filter ancestor=cdq.demo.vies) --format '{{range $p, $conf := .NetworkSettings.Ports}}{{$p}} -> {{(index $conf 0).HostPort}}{{"\n"}}{{end}}' || echo "No container found"
+        continue-on-error: true
+
+      - name: Try Swagger UI (dynamic port)
+        run: |
+          PORT=$(docker inspect $(docker ps -q --filter ancestor=cdq.demo.vies) \
+            --format '{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}')
+          
+          
+          echo "Swagger should be on: http://localhost:$PORT/swagger-ui/index.html"
+          curl -m 10 -I http://localhost:$PORT/swagger-ui/index.html || echo "Swagger not available"
+        continue-on-error: true
+
+      - name:  Dump container logs
+        run: docker logs $(docker ps -q --filter ancestor=cdq.demo.vies) > container.log || echo "No logs"
+        continue-on-error: true
+
+      - name: Generate Allure report
+        run: ./gradlew allureReport
+        continue-on-error: true
+
+      - name: Verify Allure report existence
+        run: |
+          if [ ! -d build/reports/allure-report ]; then
+            echo "Allure report directory does not exist!";
+            exit 1;
+          fi
+
+      - name: Test connection to GitHub actions
+        run: curl -I https://github.com/actions/upload-artifact
+
+      - name: Compress Allure report
+        run: zip -r allure-report.zip build/reports/allure-report
+
+      - name: List report (debug)
+        run: ls -al
+
+#      - name: Save zip as build artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: allure-report
+#          path: build/reports/allure-report

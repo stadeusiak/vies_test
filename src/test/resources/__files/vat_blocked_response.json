@@ -1,0 +1,28 @@
+{
+  "actionSucceed": false,
+  "viesResponse": {
+    "countryCode": "{{jsonPath request.body '$.countryCode'}}",
+    "vatNumber": "{{jsonPath request.body '$.vatNumber'}}",
+    "requestDate": "2025-05-11T00:00:00+01:00",
+    "valid": false,
+    "requestIdentifier": null,
+    "name": null,
+    "address": null,
+    "traderName": "{{jsonPath request.body '$.traderName'}}",
+    "traderStreet": "{{jsonPath request.body '$.traderStreet'}}",
+    "traderPostalCode": "{{jsonPath request.body '$.traderPostalCode'}}",
+    "traderCity": "{{jsonPath request.body '$.traderCity'}}",
+    "traderCompanyType": "{{jsonPath request.body '$.traderCompanyType'}}",
+    "traderNameMatch": null,
+    "traderStreetMatch": null,
+    "traderPostalCodeMatch": null,
+    "traderCityMatch": null,
+    "traderCompanyTypeMatch": null
+  },
+  "errorWrappers": [
+    {
+      "error": "VAT_BLOCKED",
+      "message": "The VAT number is blocked due to a specific filter on this number."
+    }
+  ]
+}
