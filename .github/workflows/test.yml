@@ -39,7 +39,7 @@ jobs:
         run: ./gradlew test
         env:
           TESTCONTAINERS_CHECKS_DISABLE: true
-        continue-on-error: true
+
 
       - name:  Dump container logs
         run: docker logs $(docker ps -q --filter ancestor=cdq.demo.vies) > container.log || echo "No logs"
