@@ -41,49 +41,6 @@ jobs:
           TESTCONTAINERS_CHECKS_DISABLE: true
         continue-on-error: true
 
-      - name: Show Docker containers
-        run: docker ps -a
-
-      - name:  Show mapped ports (debug)
-        run:  docker inspect $(docker ps -q --filter ancestor=cdq.demo.vies) --format '{{range $p, $conf := .NetworkSettings.Ports}}{{$p}} -> {{(index $conf 0).HostPort}}{{"\n"}}{{end}}' || echo "No container found"
-        continue-on-error: true
-
-      - name: Try Swagger UI (dynamic port)
-        run: |
-          PORT=$(docker inspect $(docker ps -q --filter ancestor=cdq.demo.vies) \
-            --format '{{(index (index .NetworkSettings.Ports "8080/tcp") 0).HostPort}}')
-          
-          
-          echo "Swagger should be on: http://localhost:$PORT/swagger-ui/index.html"
-          curl -m 10 -I http://localhost:$PORT/swagger-ui/index.html || echo "Swagger not available"
-        continue-on-error: true
-
       - name:  Dump container logs
         run: docker logs $(docker ps -q --filter ancestor=cdq.demo.vies) > container.log || echo "No logs"
         continue-on-error: true
-
-      - name: Generate Allure report
-        run: ./gradlew allureReport
-        continue-on-error: true
-
-      - name: Verify Allure report existence
-        run: |
-          if [ ! -d build/reports/allure-report ]; then
-            echo "Allure report directory does not exist!";
-            exit 1;
-          fi
-
-      - name: Test connection to GitHub actions
-        run: curl -I https://github.com/actions/upload-artifact
-
-      - name: Compress Allure report
-        run: zip -r allure-report.zip build/reports/allure-report
-
-      - name: List report (debug)
-        run: ls -al
-
-#      - name: Save zip as build artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: allure-report
-#          path: build/reports/allure-report

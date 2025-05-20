@@ -61,7 +61,7 @@ tasks.compileJava.dependsOn(tasks.openApiGenerate)
 tasks.named("bootBuildImage").configure { BootBuildImage it ->
     imageName = "cdq.demo.vies:latest"
     publish = false
-    builder = "paketobuildpacks/builder-jammy-base" // zamiast 'tiny'
+    builder = builder = "paketobuildpacks/builder-jammy-base:0.2.348"
     environment = [
             'BP_JVM_VERSION': '21'
     ]
